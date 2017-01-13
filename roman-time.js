@@ -5,75 +5,86 @@
  * @returns {String} – время римскими цифрами (IX:V)
  */
 function romanTime(time) {
-    var hours = time.slice(0, 2);
-    var minutes = time.slice(3, 5);
+    var hours = time.split(':')[0];
+    var minutes = time.split(':')[1];
 
-    hours = checkNumber(hours, true);
-    minutes = checkNumber(minutes, false);
-
-    time = hours + ':' + minutes;
-
-    return time;
+    if (isTimeValid(hours, minutes)) {
+        return convertNumber(hours) + ':' + convertNumber(minutes);
+    }
 }
 
-function checkNumber(str, isHours) {
-    if (!isNaN(parseInt(str))) {
-        return convertNumber(str, isHours);
-    }
-
-    throwError();
-}
-
-function convertNumber(num, isHours) {
-    if (num === '00') {
-        num = 'N';
-
-        return num;
-    }
-
-    var decade = Number(num.slice(0, 1));
-    var one = Number(num.slice(1, 2));
-
-    if ((decade > 5) || (isHours && ((decade === 2 && one > 3) || decade > 2))) {
+function isTimeValid(hours, minutes) {
+    if (isNaN(parseInt(hours)) || isNaN(parseInt(minutes))) {
         throwError();
+
+        return false;
+    } else if (isTimeInLimit(hours, minutes) && hours.length === 2 && minutes.length === 2) {
+        return true;
     }
 
-    num = '';
+    return false;
+}
 
-    num = convertDecade(decade, num);
-    num = convertOne(one, num);
+function isTimeInLimit(hours, minutes) {
+    if (Number(hours) > 23 || Number(minutes) > 59 || Number(hours) < 0 || Number(minutes) < 0) {
+        throwError();
+
+        return false;
+    }
+
+    return true;
+}
+
+function convertNumber(num) {
+    if (num === '00' || num === '0') {
+        return 'N';
+    }
+
+    var isDecade = true;
+    var decadePart = Number(num.slice(0, 1));
+    var singlePart = Number(num.slice(1, 2));
+
+    num = convertDigitPart(decadePart, isDecade);
+    num += convertDigitPart(singlePart, !isDecade);
 
     return num;
 }
 
-function convertDecade(decade, num) {
-    if (decade < 4) {
-        for (var i = 0; i < decade; i++) {
-            num += 'X';
-        }
-    } else if (decade === 4) {
-        num += 'XL';
+function convertDigitPart(digitPart, isDecade) {
+    var num = '';
+    var digits;
+
+    if (isDecade) {
+        digits = {
+            one: 'X',
+            four: 'XL'
+        };
     } else {
-        num += 'L';
+        digits = {
+            one: 'I',
+            four: 'IV'
+        };
     }
 
-    return num;
-}
-
-function convertOne(one, num) {
-    if (one < 4) {
-        for (var i = 0; i < one; i++) {
-            num += 'I';
-        }
-    } else if (one === 4) {
-        num += 'IV';
-    } else if (one < 9) {
+    if (digitPart < 4) {
+        num += addRomanOne(num, digitPart, digits);
+    } else if (digitPart === 4) {
+        num += digits.four;
+    } else if (isDecade) {
+        num += 'L';
+    } else if (digitPart < 9) {
         num += 'V';
-        for (var k = 0; k < (num - 5); k++) {
-            num += 'I';
-        }
+        num += addRomanOne(num, num - 5);
     } else {
         num += 'IX';
+    }
+
+    return num;
+}
+
+function addRomanOne(num, limit, digits) {
+    for (var i = 0; i < limit; i++) {
+        num += digits.one;
     }
 
     return num;
