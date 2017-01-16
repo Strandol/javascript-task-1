@@ -1,5 +1,55 @@
 'use strict';
 
+var AsciiTime = {
+    'L': {
+        1: '*       ',
+        2: '*       ',
+        3: '*       ',
+        4: '*       ',
+        5: '******  '
+    },
+
+    'X': {
+        1: '*    *  ',
+        2: ' *  *   ',
+        3: '  **    ',
+        4: ' *  *   ',
+        5: '*    *  '
+    },
+
+    'V': {
+        1: '*        *  ',
+        2: ' *      *   ',
+        3: '  *    *    ',
+        4: '   *  *     ',
+        5: '    **      '
+    },
+
+    'I': {
+        1: '*****  ',
+        2: '  *    ',
+        3: '  *    ',
+        4: '  *    ',
+        5: '*****  '
+    },
+
+    ':': {
+        1: '    ',
+        2: '**  ',
+        3: '    ',
+        4: '**  ',
+        5: '    '
+    },
+
+    'N': {
+        1: '*   *  ',
+        2: '**  *  ',
+        3: '* * *  ',
+        4: '*  **  ',
+        5: '*   *  '
+    }
+};
+
 /**
  * @param {String} time – время в формате HH:MM (например, 09:05)
  * @returns {String} – время римскими цифрами (IX:V)
@@ -9,7 +59,10 @@ function romanTime(time) {
     var minutes = time.split(':')[1];
 
     if (isTimeValid(hours, minutes)) {
-        return convertNumber(hours) + ':' + convertNumber(minutes);
+        time = convertNumber(hours) + ':' + convertNumber(minutes);
+        drawRomanTime(time);
+
+        return time;
     }
 }
 
@@ -44,8 +97,7 @@ function convertNumber(num) {
     var decadePart = Number(num.slice(0, 1));
     var singlePart = Number(num.slice(1, 2));
 
-    num = convertDigitPart(decadePart, isDecade);
-    num += convertDigitPart(singlePart, !isDecade);
+    num = convertDigitPart(decadePart, isDecade) + convertDigitPart(singlePart, !isDecade);
 
     return num;
 }
@@ -74,7 +126,7 @@ function convertDigitPart(digitPart, isDecade) {
         num += 'L';
     } else if (digitPart < 9) {
         num += 'V';
-        num += addRomanOne(num, num - 5);
+        num += addRomanOne('', num - 5, digits);
     } else {
         num += 'IX';
     }
@@ -88,6 +140,42 @@ function addRomanOne(num, limit, digits) {
     }
 
     return num;
+}
+
+function drawRomanTime(time) {
+    var timeForConvert = {
+        1: '',
+        2: '',
+        3: '',
+        4: '',
+        5: ''
+    };
+    var timeToShow = '';
+    time = time.split('');
+
+    for (var i = 0; i < time.length; i++) {
+        timeForConvert = addRomanLetterToShow(time, timeForConvert, i);
+    }
+
+    for (var line in timeForConvert) {
+        if ({}.hasOwnProperty.call(timeForConvert[line], line)) {
+            timeForConvert[line] += '\n';
+        }
+
+        timeToShow += timeForConvert[line];
+    }
+
+    console.log(timeToShow);
+}
+
+function addRomanLetterToShow(time, timeForConvert, i) {
+    for (var line in AsciiTime[time[i]]) {
+        if ({}.hasOwnProperty.call(AsciiTime[time[i]], line)) {
+            timeForConvert[line] += AsciiTime[time[i]][line];
+        }
+    }
+
+    return timeForConvert;
 }
 
 function throwError() {
