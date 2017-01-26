@@ -1,27 +1,12 @@
 'use strict';
 
 var AsciiTime = {
-    50: ['*       ',
-         '*       ',
-         '*       ',
-         '*       ',
-         '******  '
-    ],
-
-    10: [
-        '*    *  ',
-        ' *  *   ',
-        '  **    ',
-        ' *  *   ',
-        '*    *  '
-    ],
-
-    5: [
-        '*        *  ',
-        ' *      *   ',
-        '  *    *    ',
-        '   *  *     ',
-        '    **      '
+    0: [
+        '*   *  ',
+        '**  *  ',
+        '* * *  ',
+        '*  **  ',
+        '*   *  '
     ],
 
     1: [
@@ -32,12 +17,27 @@ var AsciiTime = {
         '*****  '
     ],
 
-    0: [
-        '*   *  ',
-        '**  *  ',
-        '* * *  ',
-        '*  **  ',
-        '*   *  '
+    5: [
+        '*        *  ',
+        ' *      *   ',
+        '  *    *    ',
+        '   *  *     ',
+        '    **      '
+    ],
+
+    10: [
+        '*    *  ',
+        ' *  *   ',
+        '  **    ',
+        ' *  *   ',
+        '*    *  '
+    ],
+
+    50: ['*       ',
+         '*       ',
+         '*       ',
+         '*       ',
+         '******  '
     ],
 
     ':': [
@@ -59,98 +59,104 @@ var RomanNumbers = {
 };
 
 var arabicNumbers = [1, 5, 10, 50];
-var resultStr = '';
-var result = [];
 
 /**
  * @param {String} time – время в формате HH:MM (например, 09:05)
  * @returns {String} – время римскими цифрами (IX:V)
  */
 function romanTime(time) {
-    var timeInStr = time.match(/(\d){1,2}:(\d){1,2}/);
-    var hours = timeInStr[0].split(':')[0];
-    var minutes = timeInStr[0].split(':')[1];
+    var romTime = [];
 
-    resultStr = '';
-    result = [];
-    if (isTimeValid(hours, minutes)) {
-        parseToRomanNum(hours);
-        parseToRomanNum(':');
-        parseToRomanNum(minutes);
-        showRomanTime();
+    var hours = parseInt(time.match(/(\d{1,2}):/)[1]);
+    var minutes = parseInt(time.match(/:(\d{1,2})/)[1]);
 
-        return resultStr;
+    if (!isTimeValid(hours, minutes)) {
+        throw new TypeError('Введите корректное значение времени!');
     }
+
+    romTime = parseToRomanNum(hours).concat(parseToRomanNum(':'), parseToRomanNum(minutes));
+    showRomanTime(romTime);
+
+    return getStrRepOfRomanNum(hours) + ':' + getStrRepOfRomanNum(minutes);
 }
 
 function isTimeValid(hours, minutes) {
     if (isNaN(parseInt(hours)) || isNaN(parseInt(minutes))) {
-        throw new TypeError('Данное значение не является числом!');
+        return false;
     } else if (isTimeInLimit(hours, minutes)) {
         return true;
     }
 
-    throw new TypeError('Значение выходит за пределы значений времени!');
+    return false;
 }
 
 function isTimeInLimit(hours, minutes) {
-    if (Number(hours) > 23 || Number(minutes) > 59 || Number(hours) < 0 || Number(minutes) < 0) {
-        return false;
-    }
-
-    return true;
+    return hours < 24 && minutes < 60 && hours >= 0 && minutes >= 0;
 }
 
-function showRomanTime() {
+function getStrRepOfRomanNum(num) {
+    var resultArr = [];
+    var resultStr = '';
+
+    if (!num) {
+        return RomanNumbers[0];
+    }
+
+    for (var i = arabicNumbers.length - 1; i >= 0; i--) {
+        num = pushNewArabicNumber(resultArr, RomanNumbers, num, i);
+    }
+
+    for (var k = 0; k < resultArr.length; k++) {
+        resultStr += resultArr[k];
+    }
+
+    return resultStr;
+}
+
+function parseToRomanNum(num) {
+    var arrayOfNum = [];
+
+    if (!num) {
+        arrayOfNum.push(AsciiTime[0]);
+    } else if (num === ':') {
+        arrayOfNum.push(AsciiTime[':']);
+    }
+
+    for (var i = arabicNumbers.length - 1; i >= 0; i--) {
+        num = pushNewArabicNumber(arrayOfNum, AsciiTime, Number(num), i);
+    }
+
+    return arrayOfNum;
+}
+
+function pushNewArabicNumber(resultArr, numArr, num, i) {
+    while (num >= arabicNumbers[i]) {
+        if (num + 1 === arabicNumbers[i + 1]) {
+            resultArr.push(numArr[arabicNumbers[i + 1] - num]);
+            resultArr.push(numArr[arabicNumbers[i + 1]]);
+            num -= arabicNumbers[i + 1] - ([arabicNumbers[i + 1] - num]);
+            continue;
+        }
+
+        resultArr.push(numArr[arabicNumbers[i]]);
+        num -= arabicNumbers[i];
+    }
+
+    return num;
+}
+
+function showRomanTime(romanNum) {
     var lineForShow = '';
 
-    for (var j = 0; j < AsciiTime[1].length; j++) {
-
-        for (var k = 0; k < result.length; k++) {
-            lineForShow += result[k][j];
+    for (var i = 0; i < AsciiTime[1].length; i++) {
+        for (var j = 0; j < romanNum.length; j++) {
+            lineForShow += romanNum[j][i];
         }
 
         lineForShow += '\n';
     }
 
     console.log(lineForShow);
-}
-
-function parseToRomanNum(num) {
-    if (num === '00' || num === '0') {
-        result.push(AsciiTime[0]);
-        resultStr += RomanNumbers[0];
-
-        return;
-    } else if (num === ':') {
-        result.push(AsciiTime[':']);
-        resultStr += RomanNumbers[':'];
-
-        return;
-    }
-
-    for (var i = arabicNumbers.length - 1; i >= 0; i--) {
-        num = pushAndReturnNewArabicNumber(Number(num), i);
-    }
-}
-
-function pushAndReturnNewArabicNumber(num, i) {
-    while (num >= arabicNumbers[i]) {
-        if (num + 1 === arabicNumbers[i + 1]) {
-            result.push(AsciiTime[arabicNumbers[i + 1] - num]);
-            result.push(AsciiTime[arabicNumbers[i + 1]]);
-            resultStr += RomanNumbers[arabicNumbers[i + 1] - num];
-            resultStr += RomanNumbers[[arabicNumbers[i + 1]]];
-            num -= arabicNumbers[i + 1] - ([arabicNumbers[i + 1] - num]);
-            continue;
-        }
-
-        result.push(AsciiTime[arabicNumbers[i]]);
-        resultStr += RomanNumbers[arabicNumbers[i]];
-        num -= arabicNumbers[i];
-    }
-
-    return num;
 }
 
 module.exports = romanTime;
