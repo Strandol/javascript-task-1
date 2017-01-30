@@ -50,11 +50,11 @@ var AsciiTime = {
 };
 
 var RomanNumbers = {
-    50: 'L',
-    10: 'X',
-    5: 'V',
-    1: 'I',
     0: 'N',
+    1: 'I',
+    5: 'V',
+    10: 'X',
+    50: 'L',
     ':': ':'
 };
 
@@ -65,19 +65,17 @@ var arabicNumbers = [1, 5, 10, 50];
  * @returns {String} – время римскими цифрами (IX:V)
  */
 function romanTime(time) {
-    var romTime = [];
-
     var hours = parseInt(time.match(/(\d{1,2}):/)[1]);
     var minutes = parseInt(time.match(/:(\d{1,2})/)[1]);
 
     if (!isTimeValid(hours, minutes)) {
-        throw new TypeError('Введите корректное значение времени!');
+        throw new TypeError('Enter correct value of time!');
     }
 
-    romTime = parseToRomanNum(hours).concat(parseToRomanNum(':'), parseToRomanNum(minutes));
-    showRomanTime(romTime);
+    var romTime = parseToRomanNum(hours).concat(parseToRomanNum(':'), parseToRomanNum(minutes));
+    renderToAscii(romTime);
 
-    return getStrRepOfRomanNum(hours) + ':' + getStrRepOfRomanNum(minutes);
+    return toRomanString(hours, minutes);
 }
 
 function isTimeValid(hours, minutes) {
@@ -102,9 +100,7 @@ function getStrRepOfRomanNum(num) {
         return RomanNumbers[0];
     }
 
-    for (var i = arabicNumbers.length - 1; i >= 0; i--) {
-        num = pushNewArabicNumber(resultArr, RomanNumbers, num, i);
-    }
+    pushArabicNumbers(resultArr, RomanNumbers, num, arabicNumbers.length - 1);
 
     for (var k = 0; k < resultArr.length; k++) {
         resultStr += resultArr[k];
@@ -122,14 +118,16 @@ function parseToRomanNum(num) {
         arrayOfNum.push(AsciiTime[':']);
     }
 
-    for (var i = arabicNumbers.length - 1; i >= 0; i--) {
-        num = pushNewArabicNumber(arrayOfNum, AsciiTime, Number(num), i);
-    }
+    pushArabicNumbers(arrayOfNum, AsciiTime, Number(num), arabicNumbers.length - 1);
 
     return arrayOfNum;
 }
 
-function pushNewArabicNumber(resultArr, numArr, num, i) {
+function pushArabicNumbers(resultArr, numArr, num, i) {
+    if (!num) {
+        return;
+    }
+
     while (num >= arabicNumbers[i]) {
         if (num + 1 === arabicNumbers[i + 1]) {
             resultArr.push(numArr[arabicNumbers[i + 1] - num]);
@@ -142,10 +140,10 @@ function pushNewArabicNumber(resultArr, numArr, num, i) {
         num -= arabicNumbers[i];
     }
 
-    return num;
+    pushArabicNumbers(resultArr, numArr, num, --i);
 }
 
-function showRomanTime(romanNum) {
+function renderToAscii(romanNum) {
     var lineForShow = '';
 
     for (var i = 0; i < AsciiTime[1].length; i++) {
@@ -157,6 +155,10 @@ function showRomanTime(romanNum) {
     }
 
     console.log(lineForShow);
+}
+
+function toRomanString(hours, minutes) {
+    return getStrRepOfRomanNum(hours) + ':' + getStrRepOfRomanNum(minutes);
 }
 
 module.exports = romanTime;
